@@ -4,6 +4,46 @@ import { isWithinInterval, subHours, parseISO } from 'date-fns';
 // 🟡 EDIT CAREFULLY - This handles your data loading
 
 /**
+ * Check if coordinates are likely on land (basic validation)
+ */
+function isLikelyOnLand(lat, lon) {
+  // Define rough land boundaries for Puget Sound region
+  // These are conservative - they'll catch obvious land points
+  
+  // Bremerton/Kitsap core (clearly inland)
+  if (lat > 47.52 && lat < 47.62 && lon > -122.70 && lon < -122.60) {
+    return true;
+  }
+  
+  // Seattle core (clearly inland)
+  if (lat > 47.58 && lat < 47.68 && lon > -122.36 && lon < -122.28) {
+    return true;
+  }
+  
+  // Vashon Island core (clearly inland)
+  if (lat > 47.40 && lat < 47.47 && lon > -122.47 && lon < -122.43) {
+    return true;
+  }
+  
+  // Olympic Peninsula interior (way too far west)
+  if (lon < -123.3) {
+    return true;
+  }
+  
+  // Too far north (Canadian mainland)
+  if (lat > 49.0) {
+    return true;
+  }
+  
+  // Too far south (past Olympia)
+  if (lat < 47.0) {
+    return true;
+  }
+  
+  return false;
+}
+
+/**
  * Load and parse whale sightings CSV from Dropbox
  * @param {string} url - Dropbox public URL (must end with ?dl=1)
  * @returns {Promise<Array>} - Array of parsed sighting objects
@@ -21,11 +61,19 @@ export async function loadWhaleData(url) {
         }
         
         // Process and clean the data
-        const cleanedData = results.data
+        const allData = results.data
           .filter(row => row.lat && row.lon) // Only keep rows with valid coordinates
           .map(processSighting);
         
-        resolve(cleanedData);
+        // Filter out obvious land-based sightings
+        const waterData = allData.filter(s => !isLikelyOnLand(s.lat, s.lon));
+        
+        const filtered = allData.length - waterData.length;
+        if (filtered > 0) {
+          console.log(`Filtered ${filtered} likely land-based sightings (${waterData.length} water sightings remain)`);
+        }
+        
+        resolve(waterData);
       },
       error: (error) => {
         reject(error);
