@@ -11,6 +11,15 @@ import { isInWater, processCoordinates } from './waterUtils';
  * @returns {Promise<Array>} - Array of parsed sighting objects
  */
 export async function loadWhaleData(url) {
+  // Validate URL before attempting to parse
+  if (!url || typeof url !== 'string') {
+    throw new Error('Data URL is not configured. Please set VITE_DATA_URL environment variable.');
+  }
+
+  if (!url.startsWith('http')) {
+    throw new Error(`Invalid data URL: ${url}. URL must start with http:// or https://`);
+  }
+
   return new Promise((resolve, reject) => {
     Papa.parse(url, {
       download: true,
@@ -23,9 +32,22 @@ export async function loadWhaleData(url) {
         }
 
         // Process and clean the data with water snapping
-        const allData = results.data
+        const allData = [];
+        const errors = [];
+
+        results.data
           .filter(row => row.lat && row.lon) // Only keep rows with valid coordinates
-          .map(processSighting);
+          .forEach((row, index) => {
+            try {
+              allData.push(processSighting(row));
+            } catch (err) {
+              errors.push({ index, error: err.message });
+            }
+          });
+
+        if (errors.length > 0) {
+          console.warn(`Failed to process ${errors.length} sightings:`, errors.slice(0, 5));
+        }
 
         // Count adjustments for logging
         const stats = {
@@ -65,14 +87,22 @@ function processSighting(row) {
   let parsedDate;
   try {
     // Handle both "M/D/YYYY" and ISO date formats
-    if (row.ingest_timestamp.includes('/')) {
-      const [month, day, year] = row.ingest_timestamp.split('/');
+    const timestamp = row.ingest_timestamp || '';
+    if (timestamp.includes('/')) {
+      const [month, day, year] = timestamp.split('/');
       parsedDate = new Date(year, month - 1, day);
+    } else if (timestamp) {
+      parsedDate = parseISO(timestamp);
     } else {
-      parsedDate = parseISO(row.ingest_timestamp);
+      parsedDate = new Date();
     }
   } catch (e) {
-    parsedDate = new Date(row.ingest_timestamp);
+    parsedDate = new Date();
+  }
+
+  // Validate date
+  if (isNaN(parsedDate.getTime())) {
+    parsedDate = new Date();
   }
 
   // Get original coordinates
