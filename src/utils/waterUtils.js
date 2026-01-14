@@ -8,21 +8,37 @@
 const PUGET_SOUND_WATER_POLYGON = {
   type: 'Polygon',
   coordinates: [[
-    // Starting from the north (Strait of Juan de Fuca entrance)
+    // Western Strait of Juan de Fuca (extended west to cover Neah Bay area)
+    [-124.7, 48.4],
+    [-124.5, 48.45],
+    [-124.2, 48.42],
+    [-124.0, 48.4],
+    [-123.7, 48.38],
     [-123.5, 48.4],
     [-123.2, 48.5],
     [-122.8, 48.55],
     [-122.5, 48.5],
     // San Juan Islands area
     [-122.4, 48.6],
-    [-122.3, 48.7],
-    [-122.5, 48.75],
-    [-122.7, 48.7],
-    [-122.9, 48.6],
-    [-123.1, 48.5],
+    [-122.3, 48.75],
+    [-122.5, 48.8],
+    [-122.7, 48.75],
+    [-122.9, 48.65],
+    [-123.1, 48.55],
+    [-123.2, 48.5],
     // Back down through Rosario Strait
+    [-122.7, 48.5],
     [-122.6, 48.45],
     [-122.45, 48.35],
+    // Saratoga Passage & Skagit Bay (east of Whidbey)
+    [-122.4, 48.35],
+    [-122.35, 48.25],
+    [-122.4, 48.15],
+    [-122.45, 48.05],
+    // Possession Sound (extended east to cover Everett area)
+    [-122.2, 48.05],
+    [-122.18, 47.98],
+    [-122.22, 47.92],
     // Whidbey Island west side
     [-122.65, 48.3],
     [-122.7, 48.1],
@@ -44,28 +60,19 @@ const PUGET_SOUND_WATER_POLYGON = {
     [-122.55, 47.7],
     [-122.5, 47.8],
     [-122.45, 47.9],
-    // Possession Sound
-    [-122.35, 48.0],
-    [-122.25, 48.1],
-    [-122.3, 48.2],
-    [-122.4, 48.25],
-    // Saratoga Passage
-    [-122.5, 48.15],
-    [-122.55, 48.0],
-    // Back down east side
-    [-122.4, 47.9],
-    [-122.35, 47.8],
-    [-122.3, 47.7],
+    // Back down east side (Seattle waterfront)
+    [-122.3, 47.8],
+    [-122.28, 47.7],
     // Elliott Bay / Seattle waterfront
-    [-122.35, 47.65],
-    [-122.38, 47.6],
+    [-122.32, 47.65],
+    [-122.35, 47.6],
     // East Passage
-    [-122.35, 47.55],
-    [-122.38, 47.5],
-    [-122.4, 47.45],
+    [-122.32, 47.55],
+    [-122.35, 47.5],
+    [-122.38, 47.45],
     // Tacoma / Commencement Bay
-    [-122.35, 47.3],
-    [-122.4, 47.25],
+    [-122.33, 47.3],
+    [-122.38, 47.25],
     [-122.45, 47.2],
     // Tacoma Narrows
     [-122.55, 47.25],
@@ -84,9 +91,12 @@ const PUGET_SOUND_WATER_POLYGON = {
     [-123.1, 47.4],
     [-123.2, 47.6],
     [-123.3, 47.8],
-    [-123.4, 48.0],
-    [-123.5, 48.2],
-    [-123.5, 48.4]
+    [-123.5, 48.0],
+    [-123.7, 48.1],
+    [-124.0, 48.2],
+    [-124.3, 48.25],
+    [-124.5, 48.3],
+    [-124.7, 48.4]
   ]]
 };
 
@@ -128,6 +138,98 @@ const ADDITIONAL_WATER_AREAS = [
       [-122.52, 47.5],
       [-122.58, 47.52],
       [-122.55, 47.56]
+    ]]
+  },
+  // Possession Sound / Port Susan (Hat Island, Everett area)
+  {
+    type: 'Polygon',
+    coordinates: [[
+      [-122.55, 48.1],
+      [-122.35, 48.1],
+      [-122.2, 48.0],
+      [-122.18, 47.92],
+      [-122.25, 47.88],
+      [-122.35, 47.9],
+      [-122.45, 47.95],
+      [-122.55, 48.0],
+      [-122.55, 48.1]
+    ]]
+  },
+  // Saratoga Passage (between Whidbey and Camano)
+  {
+    type: 'Polygon',
+    coordinates: [[
+      [-122.6, 48.25],
+      [-122.45, 48.25],
+      [-122.4, 48.15],
+      [-122.45, 48.0],
+      [-122.55, 48.0],
+      [-122.6, 48.1],
+      [-122.6, 48.25]
+    ]]
+  },
+  // Skagit Bay (north of Camano, Deception Pass area)
+  {
+    type: 'Polygon',
+    coordinates: [[
+      [-122.65, 48.45],
+      [-122.45, 48.45],
+      [-122.35, 48.35],
+      [-122.4, 48.25],
+      [-122.55, 48.25],
+      [-122.65, 48.35],
+      [-122.65, 48.45]
+    ]]
+  },
+  // Western Strait of Juan de Fuca (extended for Neah Bay, Makah area)
+  {
+    type: 'Polygon',
+    coordinates: [[
+      [-124.8, 48.45],
+      [-124.5, 48.5],
+      [-124.2, 48.45],
+      [-124.0, 48.38],
+      [-124.0, 48.25],
+      [-124.3, 48.2],
+      [-124.6, 48.25],
+      [-124.8, 48.35],
+      [-124.8, 48.45]
+    ]]
+  },
+  // Hood Canal (extended to cover bridge and southern reaches)
+  {
+    type: 'Polygon',
+    coordinates: [[
+      [-122.65, 47.88],
+      [-122.58, 47.88],
+      [-122.58, 47.82],
+      [-122.62, 47.75],
+      [-122.7, 47.65],
+      [-122.78, 47.55],
+      [-122.88, 47.45],
+      [-122.92, 47.38],
+      [-122.98, 47.35],
+      [-123.02, 47.38],
+      [-122.95, 47.5],
+      [-122.88, 47.6],
+      [-122.78, 47.7],
+      [-122.7, 47.78],
+      [-122.65, 47.85],
+      [-122.65, 47.88]
+    ]]
+  },
+  // San Juan Islands (Orcas, Jones, Sucia area)
+  {
+    type: 'Polygon',
+    coordinates: [[
+      [-123.1, 48.8],
+      [-122.85, 48.8],
+      [-122.8, 48.7],
+      [-122.85, 48.6],
+      [-123.0, 48.55],
+      [-123.15, 48.6],
+      [-123.2, 48.7],
+      [-123.1, 48.8]
     ]]
   }
 ];
@@ -433,8 +535,8 @@ export function processCoordinates(lat, lon, locationDesc = '', locationMethod =
     return { lat, lon, wasAdjusted: false, adjustmentType: 'none' };
   }
 
-  // Try to snap to nearest water
-  const snapped = snapToWater(lat, lon, 3); // 3km max snap distance
+  // Try to snap to nearest water (5km max - covers most geocoding errors)
+  const snapped = snapToWater(lat, lon, 5);
 
   if (snapped.wasSnapped) {
     return {
