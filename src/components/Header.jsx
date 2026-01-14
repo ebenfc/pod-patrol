@@ -1,9 +1,10 @@
+import PropTypes from 'prop-types';
 import { Moon, Sun, RefreshCw, MapPin } from 'lucide-react';
 import { UI_TEXT } from '../utils/constants';
 
 // 🟢 SAFE TO EDIT - Header component
 
-export default function Header({ 
+function Header({ 
   isDark, 
   onToggleDark, 
   onRefresh, 
@@ -116,3 +117,20 @@ export default function Header({
     </header>
   );
 }
+
+Header.propTypes = {
+  isDark: PropTypes.bool.isRequired,
+  onToggleDark: PropTypes.func.isRequired,
+  onRefresh: PropTypes.func.isRequired,
+  lastUpdated: PropTypes.instanceOf(Date),
+  totalSightings: PropTypes.number.isRequired,
+  filteredCount: PropTypes.number.isRequired,
+  isLoading: PropTypes.bool
+};
+
+Header.defaultProps = {
+  lastUpdated: null,
+  isLoading: false
+};
+
+export default Header;

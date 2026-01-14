@@ -1,9 +1,11 @@
+import { memo } from 'react';
+import PropTypes from 'prop-types';
 import { X, Filter } from 'lucide-react';
 import { SPECIES_CONFIG, ALL_PODS, DIRECTIONS } from '../utils/constants';
 
 // 🟢 SAFE TO EDIT - Filters panel component
 
-export default function Filters({
+function Filters({
   selectedSpecies,
   selectedPods,
   selectedDirections,
@@ -121,3 +123,29 @@ function FilterCheckbox({ label, checked, onChange, color }) {
     </label>
   );
 }
+
+FilterCheckbox.propTypes = {
+  label: PropTypes.string.isRequired,
+  checked: PropTypes.bool.isRequired,
+  onChange: PropTypes.func.isRequired,
+  color: PropTypes.string
+};
+
+FilterCheckbox.defaultProps = {
+  color: null
+};
+
+Filters.propTypes = {
+  selectedSpecies: PropTypes.arrayOf(PropTypes.string).isRequired,
+  selectedPods: PropTypes.arrayOf(PropTypes.string).isRequired,
+  selectedDirections: PropTypes.arrayOf(PropTypes.string).isRequired,
+  recentOnly: PropTypes.bool.isRequired,
+  onToggleSpecies: PropTypes.func.isRequired,
+  onTogglePod: PropTypes.func.isRequired,
+  onToggleDirection: PropTypes.func.isRequired,
+  onToggleRecent: PropTypes.func.isRequired,
+  onClearAll: PropTypes.func.isRequired,
+  hasActiveFilters: PropTypes.bool.isRequired
+};
+
+export default memo(Filters);
