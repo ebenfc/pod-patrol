@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
+import PropTypes from 'prop-types';
 import { Search, MapPin } from 'lucide-react';
 import { SEARCH_LOCATIONS } from '../utils/constants';
 
 // 🟢 SAFE TO EDIT - Location search component
 
-export default function LocationSearch({ onLocationSelect, mapRef }) {
+function LocationSearch({ onLocationSelect, mapRef }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -92,3 +93,19 @@ export default function LocationSearch({ onLocationSelect, mapRef }) {
     </div>
   );
 }
+
+LocationSearch.propTypes = {
+  onLocationSelect: PropTypes.func,
+  mapRef: PropTypes.shape({
+    current: PropTypes.shape({
+      flyTo: PropTypes.func
+    })
+  })
+};
+
+LocationSearch.defaultProps = {
+  onLocationSelect: null,
+  mapRef: null
+};
+
+export default memo(LocationSearch);

@@ -1,21 +1,25 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useWhaleData } from './hooks/useWhaleData';
 import { useFilters } from './hooks/useFilters';
 import { useDarkMode } from './hooks/useDarkMode';
+import { useUrlState } from './hooks/useUrlState';
 import { calculateStats } from './utils/csvParser';
 
+import ErrorBoundary from './components/ErrorBoundary';
 import Header from './components/Header';
 import WhaleMap from './components/Map';
 import Filters from './components/Filters';
 import SightingPanel from './components/SightingPanel';
 import LocationSearch from './components/LocationSearch';
 import LayerControls from './components/LayerControls';
+import ExportButton from './components/ExportButton';
+import DateRangePicker from './components/DateRangePicker';
 
 import { UI_TEXT } from './utils/constants';
 
 // 🟡 EDIT CAREFULLY - Main app component
 
-function App() {
+function AppContent() {
   const mapRef = useRef(null);
   const [selectedSighting, setSelectedSighting] = useState(null);
   const [selectedLayers, setSelectedLayers] = useState({
@@ -36,23 +40,46 @@ function App() {
     selectedSpecies,
     selectedPods,
     selectedDirections,
+    dateRange,
     recentOnly,
     filteredSightings,
     toggleSpecies,
     togglePod,
     toggleDirection,
+    setDateRange,
     setRecentOnly,
     clearFilters,
-    hasActiveFilters
+    hasActiveFilters,
+    setFiltersFromUrl
   } = useFilters(sightings);
 
+  // URL state synchronization
+  useUrlState({
+    selectedSpecies,
+    selectedPods,
+    selectedDirections,
+    recentOnly,
+    dateRange,
+    setFiltersFromUrl
+  });
+
   // Toggle layer
-  const handleToggleLayer = (layerId) => {
+  const handleToggleLayer = useCallback((layerId) => {
     setSelectedLayers(prev => ({
       ...prev,
       [layerId]: !prev[layerId]
     }));
-  };
+  }, []);
+
+  // Handle sighting click
+  const handleSightingClick = useCallback((sighting) => {
+    setSelectedSighting(sighting);
+  }, []);
+
+  // Close sighting panel
+  const handleCloseSightingPanel = useCallback(() => {
+    setSelectedSighting(null);
+  }, []);
 
   // Calculate stats
   const stats = calculateStats(filteredSightings);
@@ -71,8 +98,8 @@ function App() {
     );
   }
 
-  // Error state
-  if (error) {
+  // Error state (only show if no data loaded)
+  if (error && sightings.length === 0) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center max-w-md p-6">
@@ -110,10 +137,19 @@ function App() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
-        <div className="w-80 bg-gray-50 dark:bg-gray-900 p-4 overflow-y-auto border-r border-gray-200 dark:border-gray-700">
+        <div className="w-80 bg-gray-50 dark:bg-gray-900 p-4 overflow-y-auto border-r border-gray-200 dark:border-gray-700 hidden md:block">
           {/* Location Search */}
           <div className="mb-4">
             <LocationSearch mapRef={mapRef} />
+          </div>
+
+          {/* Date Range & Export */}
+          <div className="mb-4 flex gap-2">
+            <DateRangePicker
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+            />
+            <ExportButton sightings={filteredSightings} />
           </div>
 
           {/* Layer Controls */}
@@ -172,10 +208,11 @@ function App() {
         <div className="flex-1 relative">
           {filteredSightings.length > 0 ? (
             <WhaleMap
+              ref={mapRef}
               sightings={filteredSightings}
               isDark={isDark}
               selectedLayers={selectedLayers}
-              onSightingClick={setSelectedSighting}
+              onSightingClick={handleSightingClick}
             />
           ) : (
             <div className="h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
@@ -202,10 +239,19 @@ function App() {
       {selectedSighting && (
         <SightingPanel
           sighting={selectedSighting}
-          onClose={() => setSelectedSighting(null)}
+          onClose={handleCloseSightingPanel}
         />
       )}
     </div>
+  );
+}
+
+// Wrap with ErrorBoundary
+function App() {
+  return (
+    <ErrorBoundary>
+      <AppContent />
+    </ErrorBoundary>
   );
 }
 

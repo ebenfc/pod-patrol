@@ -60,6 +60,25 @@ export function useFilters(sightings) {
     setRecentOnly(false);
   };
 
+  // Set filters from URL parameters
+  const setFiltersFromUrl = (urlFilters) => {
+    if (urlFilters.species?.length > 0) {
+      setSelectedSpecies(urlFilters.species);
+    }
+    if (urlFilters.pods?.length > 0) {
+      setSelectedPods(urlFilters.pods);
+    }
+    if (urlFilters.directions?.length > 0) {
+      setSelectedDirections(urlFilters.directions);
+    }
+    if (urlFilters.recentOnly) {
+      setRecentOnly(urlFilters.recentOnly);
+    }
+    if (urlFilters.dateRange) {
+      setDateRange(urlFilters.dateRange);
+    }
+  };
+
   // Check if any filters are active
   const hasActiveFilters = selectedSpecies.length > 0 || 
                           selectedPods.length > 0 || 
@@ -87,6 +106,7 @@ export function useFilters(sightings) {
     clearFilters,
     
     // Helpers
-    hasActiveFilters
+    hasActiveFilters,
+    setFiltersFromUrl
   };
 }

@@ -1,8 +1,10 @@
+import { memo } from 'react';
+import PropTypes from 'prop-types';
 import { Layers } from 'lucide-react';
 
 // 🟢 SAFE TO EDIT - Layer toggle controls
 
-export default function LayerControls({ selectedLayers, onToggleLayer }) {
+function LayerControls({ selectedLayers, onToggleLayer }) {
   const layers = [
     { id: 'points', label: 'Points', icon: '📍' },
     { id: 'hexbin', label: 'Hexbin', icon: '⬡' },
@@ -46,3 +48,14 @@ export default function LayerControls({ selectedLayers, onToggleLayer }) {
     </div>
   );
 }
+
+LayerControls.propTypes = {
+  selectedLayers: PropTypes.shape({
+    points: PropTypes.bool,
+    hexbin: PropTypes.bool,
+    heatmap: PropTypes.bool
+  }).isRequired,
+  onToggleLayer: PropTypes.func.isRequired
+};
+
+export default memo(LayerControls);

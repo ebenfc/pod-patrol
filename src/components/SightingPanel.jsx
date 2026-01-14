@@ -1,9 +1,11 @@
+import { memo, useEffect, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import { X } from 'lucide-react';
 import { SPECIES_CONFIG } from '../utils/constants';
 
 // 🟢 SAFE TO EDIT - Sighting details panel (side drawer)
 
-export default function SightingPanel({ sighting, onClose }) {
+function SightingPanel({ sighting, onClose }) {
   if (!sighting) return null;
 
   const speciesConfig = SPECIES_CONFIG[sighting.species] || SPECIES_CONFIG['Unknown'];
@@ -183,3 +185,47 @@ function InfoRow({ label, value, copyable }) {
     </div>
   );
 }
+
+InfoSection.propTypes = {
+  title: PropTypes.string.isRequired,
+  children: PropTypes.node.isRequired
+};
+
+InfoRow.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
+  copyable: PropTypes.bool
+};
+
+InfoRow.defaultProps = {
+  copyable: false
+};
+
+SightingPanel.propTypes = {
+  sighting: PropTypes.shape({
+    sms_id: PropTypes.string,
+    sighting_index: PropTypes.number,
+    lat: PropTypes.number,
+    lon: PropTypes.number,
+    species: PropTypes.string,
+    pod: PropTypes.string,
+    direction: PropTypes.string,
+    location_desc: PropTypes.string,
+    place_a: PropTypes.string,
+    place_b: PropTypes.string,
+    dateString: PropTypes.string,
+    report_time: PropTypes.string,
+    confidence: PropTypes.number,
+    location_method: PropTypes.string,
+    notes: PropTypes.string,
+    raw_text: PropTypes.string,
+    isRecent: PropTypes.bool
+  }),
+  onClose: PropTypes.func.isRequired
+};
+
+SightingPanel.defaultProps = {
+  sighting: null
+};
+
+export default memo(SightingPanel);
