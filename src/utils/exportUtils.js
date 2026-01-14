@@ -128,20 +128,37 @@ export function exportToGeoJSON(sightings, filename = 'whale_sightings.geojson')
 
 /**
  * Helper function to download a file
+ * @throws {Error} If download fails
  */
 function downloadFile(content, filename, mimeType) {
-  const blob = new Blob([content], { type: mimeType });
-  const url = URL.createObjectURL(blob);
+  try {
+    const blob = new Blob([content], { type: mimeType });
 
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  link.style.display = 'none';
+    if (!blob.size) {
+      throw new Error('Failed to create file content');
+    }
 
-  document.body.appendChild(link);
-  link.click();
+    const url = URL.createObjectURL(blob);
 
-  // Cleanup
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+    if (!document.body) {
+      throw new Error('Document not ready');
+    }
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.style.display = 'none';
+
+    document.body.appendChild(link);
+    link.click();
+
+    // Cleanup safely
+    if (link.parentNode) {
+      link.parentNode.removeChild(link);
+    }
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error('Export failed:', err);
+    throw new Error(`Failed to export ${filename}: ${err.message}`);
+  }
 }
