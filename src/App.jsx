@@ -14,8 +14,12 @@ import LocationSearch from './components/LocationSearch';
 import LayerControls from './components/LayerControls';
 import ExportButton from './components/ExportButton';
 import DateRangePicker from './components/DateRangePicker';
+import SetupGuide from './components/SetupGuide';
 
 import { UI_TEXT } from './utils/constants';
+
+// Fallback to sample data in repo if no URL configured
+const FALLBACK_DATA_URL = 'https://raw.githubusercontent.com/ebenfc/pod-patrol/main/public/whale_data.csv';
 
 // 🟡 EDIT CAREFULLY - Main app component
 
@@ -31,8 +35,11 @@ function AppContent() {
   // Dark mode
   const { isDark, toggle: toggleDark } = useDarkMode();
 
-  // Load whale data
-  const dataUrl = import.meta.env.VITE_DATA_URL;
+  // Load whale data - use env var or fallback to sample data
+  const configuredUrl = import.meta.env.VITE_DATA_URL;
+  const dataUrl = configuredUrl || FALLBACK_DATA_URL;
+  const isUsingFallback = !configuredUrl;
+
   const { data: sightings, loading, error, lastUpdated, refresh } = useWhaleData(dataUrl);
 
   // Filters
@@ -100,29 +107,20 @@ function AppContent() {
 
   // Error state (only show if no data loaded)
   if (error && sightings.length === 0) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center max-w-md p-6">
-          <div className="text-6xl mb-4">❌</div>
-          <div className="text-lg text-gray-900 dark:text-gray-100 font-semibold mb-2">
-            {UI_TEXT.error}
-          </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            {error}
-          </div>
-          <button
-            onClick={refresh}
-            className="px-4 py-2 bg-ocean-600 text-white rounded-lg hover:bg-ocean-700 transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
+    return <SetupGuide error={error} onRetry={refresh} />;
   }
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+      {/* Sample Data Banner */}
+      {isUsingFallback && sightings.length > 0 && (
+        <div className="bg-yellow-100 dark:bg-yellow-900/30 border-b border-yellow-200 dark:border-yellow-800 px-4 py-2">
+          <p className="text-sm text-yellow-800 dark:text-yellow-200 text-center">
+            Using sample data. Set <code className="bg-yellow-200 dark:bg-yellow-800 px-1 rounded">VITE_DATA_URL</code> in Vercel for live data.
+          </p>
+        </div>
+      )}
+
       {/* Header */}
       <Header
         isDark={isDark}

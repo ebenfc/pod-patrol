@@ -305,23 +305,99 @@ export function snapToWater(lat, lon, maxSnapDistance = 5) {
 /**
  * Pre-defined water points for common locations
  * These are known good water coordinates for frequently mentioned locations
+ * Expanded based on Orca Network SMS patterns and Puget Sound geography
  */
 const KNOWN_WATER_LOCATIONS = {
+  // Major waterways
   'Elliott Bay': { lat: 47.605, lon: -122.38 },
   'Puget Sound': { lat: 47.5, lon: -122.45 },
   'Admiralty Inlet': { lat: 48.0, lon: -122.65 },
   'Hood Canal': { lat: 47.7, lon: -122.85 },
   'Possession Sound': { lat: 48.0, lon: -122.35 },
   'Saratoga Passage': { lat: 48.15, lon: -122.5 },
+  'Rosario Strait': { lat: 48.45, lon: -122.75 },
+  'Haro Strait': { lat: 48.5, lon: -123.15 },
+  'Strait of Juan de Fuca': { lat: 48.3, lon: -123.5 },
+
+  // Passages and channels
   'Colvos Passage': { lat: 47.45, lon: -122.48 },
   'Dalco Passage': { lat: 47.34, lon: -122.47 },
   'Rich Passage': { lat: 47.55, lon: -122.52 },
   'Agate Passage': { lat: 47.72, lon: -122.57 },
   'Tacoma Narrows': { lat: 47.27, lon: -122.55 },
+  'East Passage': { lat: 47.45, lon: -122.4 },
+  'Deception Pass': { lat: 48.41, lon: -122.65 },
+
+  // Bays and inlets
   'Commencement Bay': { lat: 47.27, lon: -122.42 },
   'Carr Inlet': { lat: 47.32, lon: -122.58 },
   'Henderson Bay': { lat: 47.35, lon: -122.58 },
-  'Case Inlet': { lat: 47.28, lon: -122.82 }
+  'Case Inlet': { lat: 47.28, lon: -122.82 },
+  'Sinclair Inlet': { lat: 47.55, lon: -122.63 },
+  'Dyes Inlet': { lat: 47.62, lon: -122.68 },
+  'Liberty Bay': { lat: 47.73, lon: -122.62 },
+  'Eagle Harbor': { lat: 47.62, lon: -122.52 },
+  'Quartermaster Harbor': { lat: 47.38, lon: -122.46 },
+  'Budd Inlet': { lat: 47.07, lon: -122.9 },
+
+  // Ferry routes (midpoints)
+  'Edmonds Kingston': { lat: 47.81, lon: -122.45 },
+  'Mukilteo Clinton': { lat: 47.95, lon: -122.35 },
+  'Seattle Bainbridge': { lat: 47.62, lon: -122.42 },
+  'Seattle Bremerton': { lat: 47.58, lon: -122.5 },
+  'Fauntleroy Vashon': { lat: 47.52, lon: -122.42 },
+  'Southworth Fauntleroy': { lat: 47.52, lon: -122.47 },
+  'Point Defiance Tahlequah': { lat: 47.32, lon: -122.5 },
+  'Anacortes': { lat: 48.5, lon: -122.68 },
+
+  // Points and landmarks (offshore)
+  'Point Robinson': { lat: 47.39, lon: -122.37 },
+  'Point No Point': { lat: 47.91, lon: -122.53 },
+  'Alki Point': { lat: 47.58, lon: -122.42 },
+  'West Point': { lat: 47.66, lon: -122.44 },
+  'Jefferson Head': { lat: 47.75, lon: -122.42 },
+  'Meadow Point': { lat: 47.7, lon: -122.4 },
+  'Three Tree Point': { lat: 47.45, lon: -122.38 },
+  'Restoration Point': { lat: 47.56, lon: -122.52 },
+  'Foulweather Bluff': { lat: 47.93, lon: -122.6 },
+  'Double Bluff': { lat: 47.97, lon: -122.52 },
+  'Marrowstone Point': { lat: 48.1, lon: -122.69 },
+  'Bush Point': { lat: 48.03, lon: -122.6 },
+  'Lagoon Point': { lat: 48.06, lon: -122.53 },
+  'Possession Point': { lat: 47.9, lon: -122.38 },
+
+  // Whale watching spots
+  'Lime Kiln': { lat: 48.52, lon: -123.15 },
+  'San Juan Channel': { lat: 48.53, lon: -123.0 },
+  'Active Pass': { lat: 48.87, lon: -123.3 },
+  'Boundary Pass': { lat: 48.75, lon: -123.1 },
+
+  // Islands (offshore points)
+  'Vashon Island': { lat: 47.42, lon: -122.47 },
+  'Bainbridge Island': { lat: 47.65, lon: -122.55 },
+  'Blake Island': { lat: 47.54, lon: -122.49 },
+  'Hat Island': { lat: 48.02, lon: -122.33 },
+  'Whidbey Island': { lat: 48.1, lon: -122.6 },
+  'Camano Island': { lat: 48.18, lon: -122.45 },
+  'Fox Island': { lat: 47.25, lon: -122.62 },
+  'Anderson Island': { lat: 47.17, lon: -122.7 },
+  'McNeil Island': { lat: 47.22, lon: -122.68 },
+
+  // Common reference points from SMS
+  'Golden Gardens': { lat: 47.69, lon: -122.41 },
+  'Carkeek Park': { lat: 47.71, lon: -122.38 },
+  'Discovery Park': { lat: 47.66, lon: -122.42 },
+  'Shilshole': { lat: 47.68, lon: -122.41 },
+  'Mukilteo': { lat: 47.95, lon: -122.31 },
+  'Edmonds': { lat: 47.81, lon: -122.39 },
+  'Kingston': { lat: 47.8, lon: -122.5 },
+  'Manchester': { lat: 47.57, lon: -122.55 },
+  'Southworth': { lat: 47.51, lon: -122.5 },
+  'Harper': { lat: 47.52, lon: -122.52 },
+  'Olalla': { lat: 47.43, lon: -122.5 },
+  'Gig Harbor': { lat: 47.33, lon: -122.58 },
+  'Tacoma': { lat: 47.26, lon: -122.44 },
+  'Olympia': { lat: 47.05, lon: -122.88 }
 };
 
 /**
