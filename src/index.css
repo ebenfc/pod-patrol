@@ -169,9 +169,43 @@ input[type="checkbox"]:checked {
   .mapboxgl-ctrl-group {
     @apply shadow-md;
   }
-  
+
   .mapboxgl-ctrl button {
     width: 29px;
     height: 29px;
   }
+}
+
+/* Respect reduced motion preferences (accessibility) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .marker:hover {
+    transform: none;
+  }
+
+  .marker-recent {
+    animation: none;
+    box-shadow: 0 0 10px rgba(252, 211, 77, 0.6);
+  }
+}
+
+/* Screen reader only utility class */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }

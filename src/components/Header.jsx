@@ -1,10 +1,11 @@
+import { memo } from 'react';
 import PropTypes from 'prop-types';
 import { Moon, Sun, RefreshCw, MapPin } from 'lucide-react';
 import { UI_TEXT } from '../utils/constants';
 
 // 🟢 SAFE TO EDIT - Header component
 
-function Header({ 
+const Header = memo(function Header({ 
   isDark, 
   onToggleDark, 
   onRefresh, 
@@ -76,10 +77,12 @@ function Header({
               onClick={onRefresh}
               disabled={isLoading}
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+              aria-label={isLoading ? 'Loading data...' : 'Refresh data'}
               title="Check for updates"
             >
-              <RefreshCw 
+              <RefreshCw
                 className={`w-5 h-5 text-gray-600 dark:text-gray-400 ${isLoading ? 'animate-spin' : ''}`}
+                aria-hidden="true"
               />
             </button>
 
@@ -87,12 +90,13 @@ function Header({
             <button
               onClick={onToggleDark}
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
               title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {isDark ? (
-                <Sun className="w-5 h-5 text-yellow-400" />
+                <Sun className="w-5 h-5 text-yellow-400" aria-hidden="true" />
               ) : (
-                <Moon className="w-5 h-5 text-gray-600" />
+                <Moon className="w-5 h-5 text-gray-600" aria-hidden="true" />
               )}
             </button>
           </div>
@@ -116,7 +120,7 @@ function Header({
       </div>
     </header>
   );
-}
+});
 
 Header.propTypes = {
   isDark: PropTypes.bool.isRequired,

@@ -95,11 +95,12 @@ function AppContent() {
   if (loading && sightings.length === 0) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <div className="text-6xl mb-4 animate-bounce">🐋</div>
+        <div className="text-center" role="status" aria-live="polite" aria-busy="true">
+          <div className="text-6xl mb-4 animate-bounce" aria-hidden="true">🐋</div>
           <div className="text-lg text-gray-600 dark:text-gray-400">
             {UI_TEXT.loading}
           </div>
+          <span className="sr-only">Loading whale sightings data</span>
         </div>
       </div>
     );

@@ -1,4 +1,4 @@
-import { memo, useEffect, useCallback } from 'react';
+import { memo, useEffect, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { X } from 'lucide-react';
 import { SPECIES_CONFIG } from '../utils/constants';
@@ -6,6 +6,17 @@ import { SPECIES_CONFIG } from '../utils/constants';
 // 🟢 SAFE TO EDIT - Sighting details panel (side drawer)
 
 function SightingPanel({ sighting, onClose }) {
+  // Close on Escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
   if (!sighting) return null;
 
   const speciesConfig = SPECIES_CONFIG[sighting.species] || SPECIES_CONFIG['Unknown'];
@@ -13,20 +24,29 @@ function SightingPanel({ sighting, onClose }) {
   return (
     <>
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black bg-opacity-30 z-40"
         onClick={onClose}
+        aria-hidden="true"
       />
 
       {/* Panel */}
-      <div className="fixed right-0 top-0 bottom-0 w-full sm:w-96 bg-white dark:bg-gray-800 shadow-2xl z-50 overflow-y-auto">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="sighting-panel-title"
+        className="fixed right-0 top-0 bottom-0 w-full sm:w-96 bg-white dark:bg-gray-800 shadow-2xl z-50 overflow-y-auto"
+      >
         {/* Header */}
         <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="text-3xl">{speciesConfig.icon}</span>
+              <span className="text-3xl" aria-hidden="true">{speciesConfig.icon}</span>
               <div>
-                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                <h2
+                  id="sighting-panel-title"
+                  className="text-lg font-bold text-gray-900 dark:text-gray-100"
+                >
                   {sighting.species}
                 </h2>
                 {sighting.pod !== 'Unknown' && (
@@ -38,9 +58,10 @@ function SightingPanel({ sighting, onClose }) {
             </div>
             <button
               onClick={onClose}
+              aria-label="Close panel"
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
-              <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              <X className="w-5 h-5 text-gray-600 dark:text-gray-400" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -51,7 +72,7 @@ function SightingPanel({ sighting, onClose }) {
           {sighting.isRecent && (
             <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
               <div className="flex items-center gap-2">
-                <span className="text-xl">🔥</span>
+                <span className="text-xl" aria-hidden="true">🔥</span>
                 <span className="font-semibold text-yellow-800 dark:text-yellow-200">
                   Recent Sighting
                 </span>
@@ -83,8 +104,8 @@ function SightingPanel({ sighting, onClose }) {
             {sighting.place_b && (
               <InfoRow label="Location B" value={sighting.place_b} />
             )}
-            <InfoRow 
-              label="Coordinates" 
+            <InfoRow
+              label="Coordinates"
               value={`${sighting.lat.toFixed(5)}, ${sighting.lon.toFixed(5)}`}
               copyable
             />
@@ -93,8 +114,8 @@ function SightingPanel({ sighting, onClose }) {
           {/* Movement */}
           {sighting.direction !== 'unknown' && (
             <InfoSection title="Movement">
-              <InfoRow 
-                label="Direction" 
+              <InfoRow
+                label="Direction"
                 value={sighting.direction.charAt(0).toUpperCase() + sighting.direction.slice(1)}
               />
             </InfoSection>
@@ -102,13 +123,13 @@ function SightingPanel({ sighting, onClose }) {
 
           {/* Data Quality */}
           <InfoSection title="Data Quality">
-            <InfoRow 
-              label="Confidence" 
+            <InfoRow
+              label="Confidence"
               value={`${Math.round(sighting.confidence * 100)}%`}
             />
             {sighting.location_method && (
-              <InfoRow 
-                label="Location Method" 
+              <InfoRow
+                label="Location Method"
                 value={sighting.location_method.replace(/_/g, ' ')}
               />
             )}
@@ -164,9 +185,19 @@ function InfoSection({ title, children }) {
 }
 
 function InfoRow({ label, value, copyable }) {
-  const handleCopy = () => {
-    navigator.clipboard.writeText(value);
-  };
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      // Fallback: select text in prompt
+      window.prompt('Copy coordinates:', value);
+    }
+  }, [value]);
 
   return (
     <div className="flex justify-between items-start">
@@ -176,9 +207,10 @@ function InfoRow({ label, value, copyable }) {
         {copyable && (
           <button
             onClick={handleCopy}
+            aria-label={copied ? 'Copied!' : 'Copy coordinates'}
             className="ml-2 text-ocean-600 dark:text-ocean-400 hover:text-ocean-700 text-xs"
           >
-            📋
+            {copied ? '✓' : '📋'}
           </button>
         )}
       </span>

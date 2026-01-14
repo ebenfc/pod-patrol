@@ -1,4 +1,4 @@
-import { useState, memo } from 'react';
+import { useState, memo, useMemo, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Search, MapPin } from 'lucide-react';
 import { SEARCH_LOCATIONS } from '../utils/constants';
@@ -9,9 +9,24 @@ function LocationSearch({ onLocationSelect, mapRef }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredLocations = SEARCH_LOCATIONS.filter(loc =>
-    loc.name.toLowerCase().includes(searchTerm.toLowerCase())
+  // Memoize filtered locations to prevent recalculation on every render
+  const filteredLocations = useMemo(() =>
+    SEARCH_LOCATIONS.filter(loc =>
+      loc.name.toLowerCase().includes(searchTerm.toLowerCase())
+    ),
+    [searchTerm]
   );
+
+  // Close on Escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen]);
 
   const handleSelect = (location) => {
     if (mapRef.current) {
@@ -35,9 +50,12 @@ function LocationSearch({ onLocationSelect, mapRef }) {
       {/* Search Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        aria-controls="location-search-menu"
+        aria-label="Jump to location"
         className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg hover:shadow-xl transition-shadow"
       >
-        <Search className="w-4 h-4 text-ocean-600 dark:text-ocean-400" />
+        <Search className="w-4 h-4 text-ocean-600 dark:text-ocean-400" aria-hidden="true" />
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
           Jump to Location
         </span>
@@ -53,10 +71,19 @@ function LocationSearch({ onLocationSelect, mapRef }) {
           />
 
           {/* Menu */}
-          <div className="absolute top-full mt-2 left-0 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-xl z-40 overflow-hidden">
+          <div
+            id="location-search-menu"
+            role="listbox"
+            aria-label="Location search results"
+            className="absolute top-full mt-2 left-0 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-xl z-40 overflow-hidden"
+          >
             {/* Search Input */}
             <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+              <label htmlFor="location-search-input" className="sr-only">
+                Search locations
+              </label>
               <input
+                id="location-search-input"
                 type="text"
                 placeholder="Search locations..."
                 value={searchTerm}
@@ -69,13 +96,14 @@ function LocationSearch({ onLocationSelect, mapRef }) {
             {/* Location List */}
             <div className="max-h-64 overflow-y-auto">
               {filteredLocations.length > 0 ? (
-                filteredLocations.map((location, idx) => (
+                filteredLocations.map((location) => (
                   <button
-                    key={idx}
+                    key={location.name}
+                    role="option"
                     onClick={() => handleSelect(location)}
                     className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
                   >
-                    <MapPin className="w-4 h-4 text-ocean-600 dark:text-ocean-400 flex-shrink-0" />
+                    <MapPin className="w-4 h-4 text-ocean-600 dark:text-ocean-400 flex-shrink-0" aria-hidden="true" />
                     <span className="text-sm text-gray-700 dark:text-gray-300">
                       {location.name}
                     </span>

@@ -21,11 +21,16 @@ export function useWhaleData(dataUrl, autoRefreshMs = 0) {
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
-  const abortControllerRef = useRef(null);
+
+  // Track mounted state to prevent state updates after unmount
+  const isMountedRef = useRef(true);
+  // Use ref for retry count to avoid dependency issues
+  const retryCountRef = useRef(0);
 
   const fetchData = useCallback(async (isRetry = false) => {
     // Reset retry count on fresh fetch
     if (!isRetry) {
+      retryCountRef.current = 0;
       setRetryCount(0);
     }
 
@@ -35,48 +40,59 @@ export function useWhaleData(dataUrl, autoRefreshMs = 0) {
 
       const sightings = await loadWhaleData(dataUrl);
 
-      setData(sightings);
-      setLastUpdated(new Date());
-      setLoading(false);
-      setRetryCount(0);
-
-      console.log(`Loaded ${sightings.length} whale sightings`);
+      // Only update state if still mounted
+      if (isMountedRef.current) {
+        setData(sightings);
+        setLastUpdated(new Date());
+        setLoading(false);
+        setRetryCount(0);
+        retryCountRef.current = 0;
+        console.log(`Loaded ${sightings.length} whale sightings`);
+      }
     } catch (err) {
+      // Don't process errors if unmounted
+      if (!isMountedRef.current) return;
+
       console.error('Error loading whale data:', err);
 
-      // Check if we should retry
-      const currentRetry = isRetry ? retryCount : 0;
+      // Check if we should retry using ref (not state)
+      const currentRetry = retryCountRef.current;
       if (currentRetry < MAX_RETRIES) {
         const backoffMs = INITIAL_BACKOFF_MS * Math.pow(2, currentRetry);
         console.log(`Retrying in ${backoffMs}ms (attempt ${currentRetry + 1}/${MAX_RETRIES})`);
 
+        retryCountRef.current = currentRetry + 1;
         setRetryCount(currentRetry + 1);
         setError(`Connection failed. Retrying... (${currentRetry + 1}/${MAX_RETRIES})`);
 
         await sleep(backoffMs);
 
-        // Retry the fetch
-        return fetchData(true);
+        // Only retry if still mounted
+        if (isMountedRef.current) {
+          return fetchData(true);
+        }
+      } else {
+        // Max retries exceeded
+        setError(err.message || 'Failed to load data after multiple attempts');
+        setLoading(false);
       }
-
-      // Max retries exceeded
-      setError(err.message || 'Failed to load data after multiple attempts');
-      setLoading(false);
     }
-  }, [dataUrl, retryCount]);
+  }, [dataUrl]); // Only dataUrl dependency, retry tracked via ref
 
   // Initial load
   useEffect(() => {
     fetchData();
-  }, [dataUrl]);
+  }, [fetchData]);
 
   // Auto-refresh (if enabled)
   useEffect(() => {
     if (autoRefreshMs > 0) {
-      const interval = setInterval(fetchData, autoRefreshMs);
+      const interval = setInterval(() => {
+        fetchData(false);
+      }, autoRefreshMs);
       return () => clearInterval(interval);
     }
-  }, [autoRefreshMs, dataUrl]);
+  }, [autoRefreshMs, fetchData]);
 
   // Manual refresh function
   const refresh = useCallback(() => {
@@ -85,10 +101,9 @@ export function useWhaleData(dataUrl, autoRefreshMs = 0) {
 
   // Cleanup on unmount
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
+      isMountedRef.current = false;
     };
   }, []);
 

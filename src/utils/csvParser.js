@@ -36,7 +36,14 @@ export async function loadWhaleData(url) {
         const errors = [];
 
         results.data
-          .filter(row => row.lat && row.lon) // Only keep rows with valid coordinates
+          .filter(row => {
+            // Validate coordinates are valid numbers within bounds
+            const lat = parseFloat(row.lat);
+            const lon = parseFloat(row.lon);
+            return !isNaN(lat) && !isNaN(lon) &&
+                   lat >= -90 && lat <= 90 &&
+                   lon >= -180 && lon <= 180;
+          })
           .forEach((row, index) => {
             try {
               allData.push(processSighting(row));
@@ -89,8 +96,13 @@ function processSighting(row) {
     // Handle both "M/D/YYYY" and ISO date formats
     const timestamp = row.ingest_timestamp || '';
     if (timestamp.includes('/')) {
-      const [month, day, year] = timestamp.split('/');
-      parsedDate = new Date(year, month - 1, day);
+      const parts = timestamp.split('/');
+      if (parts.length === 3) {
+        const [month, day, year] = parts;
+        parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      } else {
+        parsedDate = new Date();
+      }
     } else if (timestamp) {
       parsedDate = parseISO(timestamp);
     } else {
@@ -105,9 +117,14 @@ function processSighting(row) {
     parsedDate = new Date();
   }
 
-  // Get original coordinates
+  // Get original coordinates with validation
   const originalLat = parseFloat(row.lat);
   const originalLon = parseFloat(row.lon);
+
+  // Validate coordinates are valid numbers
+  if (isNaN(originalLat) || isNaN(originalLon)) {
+    throw new Error(`Invalid coordinates: lat=${row.lat}, lon=${row.lon}`);
+  }
 
   // Process coordinates - snap to water if needed
   const processed = processCoordinates(
